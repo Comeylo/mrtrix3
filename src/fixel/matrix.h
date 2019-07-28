@@ -131,8 +131,18 @@ namespace MR
 
       // Different types are used depending on whether the connectivity matrix
       //   is in the process of being built, or whether it has been normalised
-      using init_matrix_type = vector<InitFixel>;
-      using norm_matrix_type = vector<NormFixel>;
+      class init_matrix_type : public vector<InitFixel>
+      {
+        public:
+          using vector<InitFixel>::vector;
+          using FixelType = InitFixel;
+      };
+      class norm_matrix_type : public vector<NormFixel>
+      {
+        public:
+          using vector<NormFixel>::vector;
+          using FixelType = NormFixel;
+      };
 
 
 
@@ -149,110 +159,132 @@ namespace MR
       //   "normalised" connectivity matrix, where the entries are
       //   floating-point and range from 0.0 to 1.0, and weak
       //   entries have been culled from the matrix.
-      // Additionally, if required:
-      //   - Convert fixel indices based on a lookup table
-      //   - Generate a second connectivity matrix for the purposes
-      //     of smoothing, which additionally modulates the connection
-      //     weights by a spatial distance factor (and re-applies the
-      //     connectivity threshold after doing so)
       // Note that this function will erase data from the input
-      //   initiali connectivity matrix as it processes, in order to
-      //   free up RAM for storing the output matrices.
-      void normalise (
-          init_matrix_type& init_matrix,
-          Image<index_type>& index_image,
-          IndexRemapper index_mapper,
-          const float connectivity_threshold,
-          norm_matrix_type& normalised_matrix,
-          const float smoothing_fwhm,
-          norm_matrix_type& smoothing_matrix);
+      //   initial connectivity matrix as it processes, in order to
+      //   free up RAM for storing the output matrix.
+      norm_matrix_type normalise (init_matrix_type& init_matrix, const float connectivity_threshold);
 
 
 
 
       // Template functions to save/load sparse matrices to/from file
-      template <class FixelType>
-      void save (vector<FixelType>& data, const std::string& filepath)
+      template <class MatrixType>
+      void save (MatrixType& data, const std::string& filepath)
       {
         File::OFStream out (filepath);
+        std::stringstream s;
         ProgressBar progress ("Saving fixel-fixel connectivity matrix to file \"" + filepath + "\"", data.size());
         for (const auto& f : data) {
+          s.clear();
           for (size_t i = 0; i != f.size(); ++i) {
             if (i)
-              out << ",";
-            out << f[i].index() << ":" << f[i].value();
+              s << ",";
+            s << f[i].index() << ":" << f[i].value();
           }
-          out << "\n";
+          out << s.str() << "\n";
           ++progress;
         }
       }
 
+
       template <class FixelType>
-      void load (const std::string& filepath, vector<FixelType>& data)
+      FixelType&& parse_line (const std::string& line)
       {
-        data.clear();
+        auto entries = MR::split (line, ",");
+        FixelType data;
+        for (const auto& entry : entries) {
+          auto pair = MR::split (entry, ":");
+          if (pair.size() != 2) {
+            Exception e ("Malformed sparse matrix data (unpaired)");
+            e.push_back ("Line: \"" + line + "\"");
+            e.push_back ("Entry: \"" + entry + "\"");
+            throw e;
+          }
+          try {
+            data.emplace_back (typename FixelType::ElementType (to<index_type>(pair[0]),
+                                                                to<typename FixelType::ElementType::ValueType>(pair[1])));
+          } catch (Exception& e) {
+            e.push_back ("Malformed sparse matrix data (conversion)");
+            e.push_back ("Line: \"" + line + "\"");
+            e.push_back ("Entry: \"" + entry + "\"");
+            throw e;
+          }
+        }
+        return std::move (data);
+      }
+
+      template <class FixelType>
+      FixelType&& parse_line (const std::string& line,
+                              const IndexRemapper& index_remapper)
+      {
+        auto entries = MR::split (line, ",");
+        FixelType data;
+        for (const auto& entry : entries) {
+          auto pair = MR::split (entry, ":");
+          if (pair.size() != 2) {
+            Exception e ("Malformed sparse matrix data (unpaired)");
+            e.push_back ("Line: \"" + line + "\"");
+            e.push_back ("Entry: \"" + entry + "\"");
+            throw e;
+          }
+          try {
+            const index_type external_index = to<index_type>(pair[0]);
+            const size_t internal_index = index_remapper.e2i (external_index);
+            if (internal_index != index_remapper.invalid) {
+              const typename FixelType::ElementType::ValueType value = to<typename FixelType::ElementType::ValueType>(pair[1]);
+              data.emplace_back (typename FixelType::ElementType (internal_index, value));
+            }
+          } catch (Exception& e) {
+            e.push_back ("Malformed sparse matrix data (conversion)");
+            e.push_back ("Line: \"" + line + "\"");
+            e.push_back ("Entry: \"" + entry + "\"");
+            throw e;
+          }
+        }
+        return std::move (data);
+      }
+
+
+
+
+      // TODO Multi-thread load functions
+      // Hard to do here because the number of lines is not known in advance...
+      template <class MatrixType>
+      std::shared_ptr<MatrixType> load (const std::string& filepath)
+      {
+        std::shared_ptr<MatrixType> data (new MatrixType());
         std::ifstream in (filepath);
         ProgressBar progress ("Loading fixel-fixel connectivity matrix from file \"" + filepath + "\"");
-        for (std::string line; std::getline (in, line); ) {
-          data.emplace_back (FixelType());
-          auto entries = MR::split (line, ",");
-          for (const auto& entry : entries) {
-            auto pair = MR::split (entry, ":");
-            if (pair.size() != 2) {
-              Exception e ("Malformed sparse matrix in file \"" + filepath + "\": does not consist of comma-separated pair");
-              e.push_back ("Line: \"" + line + "\"");
-              e.push_back ("Entry: \"" + entry + "\"");
-              throw e;
-            }
-            try {
-              data[data.size()-1].emplace_back (typename FixelType::ElementType (to<index_type>(pair[0]), to<typename FixelType::ElementType::ValueType>(pair[1])));
-            } catch (Exception& e) {
-              e.push_back ("Malformed sparse matrix in file \"" + filepath + "\": could not convert comma-separated pair to numerical values");
-              e.push_back ("Line: \"" + line + "\"");
-              e.push_back ("Entry: \"" + entry + "\"");
-              throw e;
-            }
+        try {
+          for (std::string line; std::getline (in, line); ) {
+            data->push_back (parse_line<typename MatrixType::FixelType> (line));
+            ++progress;
           }
-          ++progress;
+        } catch (Exception& e) {
+          throw Exception (e, "Unable to read file \"" + filepath + "\" as fixel-fixel connectivity matrix");
         }
+        return data;
       }
 
-      template <class FixelType>
-      void load (const std::string& filepath, const IndexRemapper& index_remapper, vector<FixelType>& data)
+      template <class MatrixType>
+      std::shared_ptr<MatrixType> load (const std::string& filepath, const IndexRemapper& index_remapper)
       {
-        data.clear();
+        std::shared_ptr<MatrixType> data (new MatrixType());
         std::ifstream in (filepath);
         index_type counter = 0;
-        ProgressBar progress ("Loading fixel-fixel connectivity matrix \"" + filepath + "\"");
+        ProgressBar progress ("Loading fixel-fixel connectivity matrix \"" + filepath + "\"", index_remapper.num_external());
         for (std::string line; std::getline (in, line); ) {
-          data.emplace_back (FixelType());
           const index_type internal_index = index_remapper.e2i (counter);
-          if (internal_index != index_remapper.invalid) {
-            auto entries = MR::split (line, ",");
-            for (const auto& entry : entries) {
-              auto pair = MR::split (entry, ":");
-              if (pair.size() != 2) {
-                Exception e ("Malformed sparse matrix in file \"" + filepath + "\": does not consist of comma_separated pair");
-                e.push_back ("Line: \"" + line + "\"");
-                e.push_back ("Entry: \"" + entry + "\"");
-                throw e;
-              }
-              try {
-                const index_type external_index = to<index_type>(pair[0]);
-                const typename FixelType::ElementType::ValueType value = to<typename FixelType::ElementType::ValueType>(pair[1]);
-                data[data.size()-1].emplace_back (typename FixelType::ElementType (index_remapper.e2i (external_index), value));
-              } catch (Exception& e) {
-                e.push_back ("Malformed sparse matrix in file \"" + filepath + "\": could not convert comma-separated pair to numerical values");
-                e.push_back ("Line: \"" + line + "\"");
-                e.push_back ("Entry: \"" + entry + "\"");
-                throw e;
-              }
-            }
-          }
+          if (internal_index == index_remapper.invalid)
+            data->push_back (typename MatrixType::FixelType());
+          else
+            data->push_back (parse_line<typename MatrixType::FixelType> (line, index_remapper));
           ++counter;
           ++progress;
         }
+        return data;
       }
+
 
 
     }

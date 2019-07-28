@@ -226,44 +226,9 @@ namespace MR
 
 
 
-      void normalise (init_matrix_type& initial_matrix,
-                      Image<index_type>& index_image,
-                      IndexRemapper index_mapper,
-                      const float connectivity_threshold,
-                      norm_matrix_type& normalised_matrix,
-                      const float smoothing_fwhm,
-                      norm_matrix_type& smoothing_matrix)
+      norm_matrix_type normalise (init_matrix_type& initial_matrix, const float connectivity_threshold)
       {
-        // Constants related to derivation of the smoothing matrix
-        const bool do_smoothing = (smoothing_fwhm > 0.0);
-        const float smooth_std_dev = smoothing_fwhm / 2.3548;
-        const float gaussian_const1 = do_smoothing ? (1.0 / (smooth_std_dev *  std::sqrt (2.0 * Math::pi))) : 1.0;
-        const float gaussian_const2 = 2.0 * smooth_std_dev * smooth_std_dev;
-
-
-        normalised_matrix.resize (index_mapper.num_internal(), NormFixel());
-        if (do_smoothing)
-          smoothing_matrix.resize (index_mapper.num_internal(), NormFixel());
-
-
-        // For generating the smoothing matrix, we need to be able to quickly
-        //   calculate the distance between any pair of fixels
-        vector<Eigen::Vector3> fixel_positions;
-        if (do_smoothing) {
-          fixel_positions.resize (initial_matrix.size());
-          Transform image_transform (index_image);
-          for (auto i = Loop (index_image, 0, 3) (index_image); i; ++i) {
-            Eigen::Vector3 vox ((default_type)index_image.index(0), (default_type)index_image.index(1), (default_type)index_image.index(2));
-            vox = image_transform.voxel2scanner * vox;
-            index_image.index(3) = 0;
-            const index_type count = index_image.value();
-            index_image.index(3) = 1;
-            const index_type offset = index_image.value();
-            for (size_t fixel_index = 0; fixel_index != count; ++fixel_index)
-              fixel_positions[offset + fixel_index] = vox;
-          }
-        }
-
+        norm_matrix_type data (initial_matrix.size(), NormFixel());
 
         // Define classes / functions that are going to be used for multi-threaded operation
         class Source
@@ -287,68 +252,33 @@ namespace MR
             ProgressBar progress;
         };
 
-        auto Sink = [&] (const index_type& input_index)
+        auto Sink = [&] (const index_type& index)
         {
-          assert (input_index < initial_matrix.size());
-          const index_type output_index = index_mapper.e2i (input_index);
+          assert (index < data.size());
 
-          // Is the fixel to be "processed" outside of the provided fixel mask, and thus empty?
-          if (output_index == index_mapper.invalid) {
-            assert (initial_matrix[input_index].empty());
-            return true;
+          for (auto& it : initial_matrix[index]) {
+            const connectivity_value_type connectivity = it.value() / connectivity_value_type (initial_matrix[index].count());
+            if (connectivity >= connectivity_threshold)
+              data[index].push_back (NormElement (it.index(), connectivity));
           }
-
-          assert (output_index < index_type(normalised_matrix.size()));
-
-          // Here, the connectivity matrix needs to be modified to reflect the
-          //   fact that fixel indices in the template fixel image may not
-          //   correspond to columns in the statistical analysis
-          connectivity_value_type sum_weights = 0.0;
-          for (auto& it : initial_matrix[input_index]) {
-            const connectivity_value_type connectivity = it.value() / connectivity_value_type (initial_matrix[input_index].count());
-            if (connectivity >= connectivity_threshold) {
-              normalised_matrix[output_index].push_back (NormElement (index_mapper.e2i (it.index()), connectivity));
-              if (do_smoothing) {
-                const default_type distance = std::sqrt (Math::pow2 (fixel_positions[input_index][0] - fixel_positions[it.index()][0]) +
-                                                         Math::pow2 (fixel_positions[input_index][1] - fixel_positions[it.index()][1]) +
-                                                         Math::pow2 (fixel_positions[input_index][2] - fixel_positions[it.index()][2]));
-                const connectivity_value_type smoothing_weight = connectivity * gaussian_const1 * std::exp (-Math::pow2 (distance) / gaussian_const2);
-                if (smoothing_weight >= connectivity_threshold) {
-                  smoothing_matrix[output_index].push_back (NormElement (index_mapper.e2i (it.index()), smoothing_weight));
-                  sum_weights += smoothing_weight;
-                }
-              }
-            }
-          }
-
-          if (do_smoothing) {
-            if (sum_weights) {
-              // Normalise smoothing weights
-              const connectivity_value_type norm_factor = connectivity_value_type(1) / sum_weights;
-              for (auto i : smoothing_matrix[output_index])
-                i.normalise (norm_factor);
-            } else {
-              // For a matrix intended for smoothing, want to give a fixel that is within the mask
-              //   full self-connectivity even if it's not visited by any streamlines
-              // Note however that this does not apply to the principal matrix output
-              smoothing_matrix[output_index].push_back (NormElement (output_index, connectivity_value_type (1)));
-            }
-          }
+          data[index].normalise();
 
           // Force deallocation of memory used for this fixel in the initial matrix
-          InitFixel().swap (initial_matrix[input_index]);
+          InitFixel().swap (initial_matrix[index]);
 
           return true;
         };
 
 
         // Now the actual operation of the normalise_matrix() function
-        Source source (index_mapper.num_external());
+        Source source (initial_matrix.size());
         Thread::run_queue (source, index_type(), Thread::multi (Sink));
 
         // The initial connectivity matrix should now be empty;
         //   nevertheless, wipe the memory used for the outer vector itself
         init_matrix_type().swap (initial_matrix);
+
+        return data;
       }
 
 

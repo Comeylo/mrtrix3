@@ -20,6 +20,7 @@
 #include "file/path.h"
 #include "file/utils.h"
 #include "fixel/helpers.h"
+#include "fixel/types.h"
 
 #include "fixel/filter/base.h"
 #include "fixel/filter/connect.h"
@@ -57,7 +58,19 @@ void usage ()
 
   OPTIONS
   + Option ("matrix", "provide a fixel-fixel connectivity matrix for filtering operations that require it")
-    + Argument ("file").type_file_in();
+    + Argument ("file").type_file_in()
+
+  + OptionGroup ("Options that are specific to the \"connect\" filter")
+  + Option ("connect_value", "threshold to apply to fixel data values (default: " + str(DEFAULT_FIXEL_CONNECT_VALUE_THRESHOLD, 2) + ")")
+    + Argument ("value").type_float()
+  + Option ("connect_connectivity", "threshold to apply to fixel-fixel connectivity (default: " + str(DEFAULT_FIXEL_CONNECT_CONNECTIVITY_THRESHOLD, 2) + ")")
+    + Argument ("value").type_float (0.0, 1.0)
+
+  + OptionGroup ("Options that are specific to the \"smooth\" filter")
+  + Option ("smooth_fwhm", "the full-width half-maximum of the spatial kernel for fixel data smoothing (default: " + str(DEFAULT_FIXEL_SMOOTHING_FWHM, 2) + "mm)")
+     + Argument ("value").type_float (0.0)
+  + Option ("smooth_threshold", "the smoothing weight threshold for fixel data smoothing (default: " + str(DEFAULT_FIXEL_SMOOTHING_THRESHOLD, 2) + "mm)")
+     + Argument ("value").type_float (0.0, 1.0);
 
 }
 
@@ -92,25 +105,33 @@ void run()
   if (single_file.valid() && !Fixel::fixels_match (index_header, single_file))
     throw Exception ("File \"" + argument[0] + "\" is not a valid fixel data file (does not match corresponding index image)");
 
-  Fixel::Matrix::norm_matrix_type matrix;
-  auto opt = get_options ("matrix");
-  if (opt.size())
-    Fixel::Matrix::load (opt[0][0], matrix);
-
   std::unique_ptr<Fixel::Filter::Base> filter;
   switch (int(argument[1])) {
     case 0:
-      if (matrix.empty())
+    {
+      auto opt = get_options ("matrix");
+      if (!opt.size())
         throw Exception ("For filter \"connect\", fixel-fixel connectivity matrix must be provided via the -matrix option");
-      filter.reset (new Fixel::Filter::Connect (matrix));
+      std::shared_ptr<Fixel::Matrix::norm_matrix_type> matrix = Fixel::Matrix::load<Fixel::Matrix::norm_matrix_type> (opt[0][0]);
+      filter.reset (new Fixel::Filter::Connect (matrix,
+                                                get_option_value ("connect_value", DEFAULT_FIXEL_CONNECT_VALUE_THRESHOLD),
+                                                get_option_value ("connect_connectivity", DEFAULT_FIXEL_CONNECT_CONNECTIVITY_THRESHOLD)));
       output_header.datatype() = DataType::UInt32;
       output_header.datatype().set_byte_order_native();
-      break;
+    }
+    break;
     case 1:
-      if (matrix.empty())
+    {
+      auto opt = get_options ("matrix");
+      if (!opt.size())
         throw Exception ("For filter \"smooth\", fixel-fixel connectivity matrix must be provided via the -matrix option");
-      filter.reset (new Fixel::Filter::Smooth (matrix));
-      break;
+      auto index_image = index_header.get_image<Fixel::index_type>();
+      filter.reset (new Fixel::Filter::Smooth (index_image,
+                                               opt[0][0],
+                                               get_option_value ("smooth_fwhm", DEFAULT_FIXEL_SMOOTHING_FWHM),
+                                               get_option_value ("smooth_threshold", DEFAULT_FIXEL_SMOOTHING_THRESHOLD)));
+    }
+    break;
     default:
       assert (0);
   }

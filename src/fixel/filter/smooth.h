@@ -19,6 +19,9 @@
 #include "fixel/matrix.h"
 #include "fixel/filter/base.h"
 
+#define DEFAULT_FIXEL_SMOOTHING_FWHM 10.0
+#define DEFAULT_FIXEL_SMOOTHING_THRESHOLD 0.01
+
 namespace MR
 {
   namespace Fixel
@@ -31,14 +34,13 @@ namespace MR
       /** \addtogroup Filters
       @{ */
 
-      /*! Smooth fixel data using a fixel-fixel connectivity matrix.
+      /*! Smooth fixel data using a combination of fixel-fixel connectivity and spatial distance.
        *
        * Typical usage:
        * \code
        * auto input = Image<float>::open (argument[0]);
-       * Fixel::Matrix::norm_matrix_type matrix;
-       * Fixel::Matrix::load (argument[1], matrix);
-       * Fixel::Filter::Smooth smooth_filter (matrix);
+       * auto index_image = Fixel::find_index_header (input.name()).get_image<Fixel::index_type>();
+       * Fixel::Filter::Smooth smooth_filter (index_image, argument[1]);
        * auto output = Image::create<float> (argument[2], input);
        * smooth_filter (input, output);
        *
@@ -49,13 +51,15 @@ namespace MR
       { MEMALIGN (Smooth)
 
         public:
-          Smooth (const Fixel::Matrix::norm_matrix_type& matrix) :
-              matrix (matrix) { }
+          Smooth (Image<Fixel::index_type> index_image,
+                  const std::string& matrix_path,
+                  const float fwhm = DEFAULT_FIXEL_SMOOTHING_FWHM,
+                  const float threshold = DEFAULT_FIXEL_SMOOTHING_THRESHOLD);
 
           void operator() (Image<float>& input, Image<float>& output) const;
 
         protected:
-          const Fixel::Matrix::norm_matrix_type& matrix;
+          std::shared_ptr<Fixel::Matrix::norm_matrix_type> matrix;
       };
     //! @}
 

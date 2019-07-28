@@ -20,8 +20,8 @@
 #include "fixel/matrix.h"
 #include "fixel/filter/base.h"
 
-#define DEFAULT_FIXEL_VALUE_THRESHOLD 0.5
-#define DEFAULT_FIXEL_CONNECTIVITY_THRESHOLD 0.1
+#define DEFAULT_FIXEL_CONNECT_VALUE_THRESHOLD 0.5
+#define DEFAULT_FIXEL_CONNECT_CONNECTIVITY_THRESHOLD 0.1
 
 namespace MR
 {
@@ -40,8 +40,7 @@ namespace MR
        * Typical usage:
        * \code
        * auto input = Image<float>::open (argument[0]);
-       * Fixel::Matrix::norm_matrix_type matrix;
-       * Fixel::Matrix::load (argument[1], matrix);
+       * Fixel::Matrix::norm_matrix_type matrix = Fixel::Matrix::load<Fixel::Matrix::norm_matrix_type> (argument[1]);
        * Fixel::Filter::Connect connect_filter (matrix);
        * auto output = Image::create<float> (argument[2], input);
        * smooth_filter (input, output);
@@ -53,9 +52,9 @@ namespace MR
       { MEMALIGN (Connect)
 
         public:
-          Connect (const Fixel::Matrix::norm_matrix_type& matrix,
-                   const float value_threshold = DEFAULT_FIXEL_VALUE_THRESHOLD,
-                   const float connectivity_threshold = DEFAULT_FIXEL_CONNECTIVITY_THRESHOLD) :
+          Connect (std::shared_ptr<Fixel::Matrix::norm_matrix_type> matrix,
+                   const float value_threshold = DEFAULT_FIXEL_CONNECT_VALUE_THRESHOLD,
+                   const float connectivity_threshold = DEFAULT_FIXEL_CONNECT_CONNECTIVITY_THRESHOLD) :
               matrix (matrix),
               value_threshold (value_threshold),
               connectivity_threshold (connectivity_threshold) { }
@@ -65,7 +64,7 @@ namespace MR
           void set_connectivity_threshold (const float value) { connectivity_threshold = value; }
 
         protected:
-          const Fixel::Matrix::norm_matrix_type& matrix;
+          std::shared_ptr<Fixel::Matrix::norm_matrix_type> matrix;
           float value_threshold, connectivity_threshold;
       };
     //! @}

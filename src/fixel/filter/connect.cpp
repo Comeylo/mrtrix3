@@ -38,9 +38,9 @@ namespace MR
 
         check_dimensions (input, output);
 
-        if (size_t (input.size(0)) != matrix.size())
+        if (size_t (input.size(0)) != matrix->size())
           throw Exception ("Size of fixel data file \"" + input.name() + "\" (" + str(input.size(0)) +
-                           ") does not match fixel connectivity matrix (" + str(matrix.size()) + ")");
+                           ") does not match fixel connectivity matrix (" + str(matrix->size()) + ")");
 
         if (input.ndim() > 1 && input.size(1) != 1)
           throw Exception ("Fixel connected component filter cannot be applied to fixel data files with more than one parameter");
@@ -69,7 +69,7 @@ namespace MR
                 to_expand.pop();
                 output.index(0) = index;
                 output.value() = cluster_index;
-                for (const auto& connection : matrix[index]) {
+                for (const auto& connection : (*matrix)[index]) {
                   input.index (0) = connection.index();
                   if (!processed[connection.index()] && connection.value() >= connectivity_threshold && input.value() >= value_threshold) {
                     ++cluster_size;
