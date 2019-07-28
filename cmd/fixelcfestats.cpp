@@ -120,7 +120,7 @@ void usage ()
   + Option ("cfe_c", "cfe connectivity exponent (default: " + str(DEFAULT_CFE_C, 2) + ")")
   + Argument ("value").type_float (0.0, 100.0)
 
-  + Option ("cfe_norm", "use the normalised form of the cfe equation")
+  + Option ("cfe_legacy", "use the legacy (i.e. not intrinsically normalised) form of the cfe equation")
 
   + Math::Stats::GLM::glm_options ("fixel");
 
@@ -233,7 +233,7 @@ void run()
   const value_type cfe_h = get_option_value ("cfe_h", DEFAULT_CFE_H);
   const value_type cfe_e = get_option_value ("cfe_e", DEFAULT_CFE_E);
   const value_type cfe_c = get_option_value ("cfe_c", DEFAULT_CFE_C);
-  const bool cfe_norm = get_options ("cfe_norm").size();
+  const bool cfe_norm = !get_options ("cfe_legacy").size();
 
   const bool do_nonstationarity_adjustment = get_options ("nonstationarity").size();
   const default_type empirical_skew = get_option_value ("skew_nonstationarity", DEFAULT_EMPIRICAL_SKEW);
