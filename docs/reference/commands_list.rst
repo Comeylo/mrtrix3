@@ -153,7 +153,7 @@ List of MRtrix3 commands
     :ref:`fixel2tsf`, "Map fixel values to a track scalar file based on an input tractogram"
     :ref:`fixel2voxel`, "Convert a fixel-based sparse-data image into some form of scalar image"
     :ref:`fixelcfestats`, "Fixel-based analysis using connectivity-based fixel enhancement and non-parametric permutation testing"
-    :ref:`fixelconnectivity`, "Generate one or more fixel-fixel connectivity matrices"
+    :ref:`fixelconnectivity`, "Generate a fixel-fixel connectivity matrix"
     :ref:`fixelconvert`, "Convert between the old format fixel image (.msf / .msh) and the new fixel directory format"
     :ref:`fixelcorrespondence`, "Obtain fixel-fixel correpondence between a subject fixel image and a template fixel mask"
     :ref:`fixelcrop`, "Crop/remove fixels from sparse fixel image using a binary fixel mask"

@@ -31,6 +31,20 @@ Options
 
 -  **-matrix file** provide a fixel-fixel connectivity matrix for filtering operations that require it
 
+Options that are specific to the "connect" filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  **-connect_value value** threshold to apply to fixel data values (default: 0.5)
+
+-  **-connect_connectivity value** threshold to apply to fixel-fixel connectivity (default: 0.1)
+
+Options that are specific to the "smooth" filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  **-smooth_fwhm value** the full-width half-maximum of the spatial kernel for fixel data smoothing (default: 10mm)
+
+-  **-smooth_threshold value** the smoothing weight threshold for fixel data smoothing (default: 0.01mm)
+
 Standard options
 ^^^^^^^^^^^^^^^^
 

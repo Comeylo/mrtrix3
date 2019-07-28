@@ -6,7 +6,7 @@ fixelconnectivity
 Synopsis
 --------
 
-Generate one or more fixel-fixel connectivity matrices
+Generate a fixel-fixel connectivity matrix
 
 Usage
 --------
@@ -19,23 +19,8 @@ Usage
 -  *tracks*: the tracks used to determine fixel-fixel connectivity
 -  *matrix*: the output fixel-fixel connectivity matrix
 
-Description
------------
-
-If this command is used within a typical Fixel-Based Analysis (FBA) pipeline, one would be expected to utilise the -smoothing command-line option, as this will provide the matrix by which fixel data should be smoothed in template space, as opposed to statistical testing which would typically use the full output connectivity matrix
-
 Options
 -------
-
-Options for generating an additional connectivity matrix
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
--  **-smoothing path** generate a second fixel-fixel connectivity matrix that incorporates both streamlines-based connectivity and spatial distance, which is typically used for smoothing fixel-based data
-
--  **-fwhm value** manually specify the full-width half-maximum of the fixel data smoothing matrix (default: 10mm)
-
-Options that influence generation of the connectivity matrix / matrices
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **-threshold value** a threshold to define the required fraction of shared connections to be included in the neighbourhood (default: 0.01)
 
