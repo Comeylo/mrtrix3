@@ -168,22 +168,50 @@ namespace MR
 
 
       // Template functions to save/load sparse matrices to/from file
+
+
+
+
+      // TODO This is too slow when writing to a network filesystem
+      // Create a RAM buffer and write in larger chunks
+      //CONF option: FixelMatrixSaveBufferSize
+      //CONF default: 268435456
+      //CONF The size of the write-back buffer (in bytes) to use when
+      //CONF writing fixel-fixel connectivity matrix files. MRtrix will
+      //CONF store the connectivity information in a relatively large
+      //CONF buffer to limit the number of write() calls, avoiding
+      //CONF associated issues such as file fragmentation and slow
+      //CONF performance on network filesystems.
       template <class MatrixType>
       void save (MatrixType& data, const std::string& filepath)
       {
+        static const size_t default_buffer_capacity = size_t(File::Config::get_int ("FixelMatrixSaveBufferSize", 268435456));
+        const size_t buffer_capacity = File::use_delayed_writeback (filepath) ?
+                                       std::numeric_limits<size_t>::max() :
+                                       default_buffer_capacity;
         File::OFStream out (filepath);
         std::stringstream s;
+        s << std::setprecision(3);
         ProgressBar progress ("Saving fixel-fixel connectivity matrix to file \"" + filepath + "\"", data.size());
         for (const auto& f : data) {
-          s.clear();
+          // Approximate what the size of the string for this
+          //   fixel will be, to predict whether or not adding this
+          //   fixel to the buffer will extend the buffer beyond the allotted size
+          // - Newline: 1
+          // - Per element: 6 for fixel index, 1 for colon, 8 for connectivity value
+          if (s.str().size() + (1 + 15*f.size()) >= buffer_capacity) {
+            out << s.str();
+            s.clear();
+          }
           for (size_t i = 0; i != f.size(); ++i) {
             if (i)
               s << ",";
             s << f[i].index() << ":" << f[i].value();
           }
-          out << s.str() << "\n";
+          s << "\n";
           ++progress;
         }
+        out << s.str();
       }
 
 

@@ -17,13 +17,6 @@
 #include <unistd.h>
 #include <zlib.h>
 
-#ifdef MRTRIX_MACOSX
-# include <sys/param.h>
-# include <sys/mount.h>
-#elif !defined(MRTRIX_WINDOWS)
-# include <sys/vfs.h> 
-#endif
-
 #ifdef MRTRIX_WINDOWS
 #include <windows.h>
 #else
@@ -35,6 +28,7 @@
 #include "file/path.h"
 #include "file/mmap.h"
 #include "file/config.h"
+#include "file/utils.h"
 
 #include "debug.h"
 
@@ -55,100 +49,35 @@ namespace MR
       mtime = sbuf.st_mtime;
 
 
-      if (msize < 0) 
+      if (msize < 0)
         msize = sbuf.st_size - start;
-      else if (start + msize > sbuf.st_size) 
+      else if (start + msize > sbuf.st_size)
         throw Exception ("file \"" + Entry::name + "\" is smaller than expected");
 
-      bool delayed_writeback = false;
-      if (readwrite) {
-
-#ifdef MRTRIX_WINDOWS
-        const unsigned int length = 255;
-        char root_path[length];
-        if (GetVolumePathName (Entry::name.c_str(), root_path, length)) { // Returns non-zero on success
-
-          const unsigned int code = GetDriveType (root_path);
-          switch (code) {
-            case 0: // DRIVE_UNKNOWN
-              DEBUG ("cannot get filesystem information on file \"" + Entry::name + "\": " + strerror (errno));
-              DEBUG ("  defaulting to delayed write-back");
-              delayed_writeback = true;
-              break;
-            case 1: // DRIVE_NO_ROOT_DIR:
-              DEBUG ("erroneous root path derived for file \"" + Entry::name + "\": " + strerror (errno));
-              DEBUG ("  defaulting to delayed write-back");
-              delayed_writeback = true;
-              break;
-            case 2: // DRIVE_REMOVABLE
-              DEBUG ("Drive for file \"" + Entry::name + "\" detected as removable; using memory-mapping");
-              break;
-            case 3: // DRIVE_FIXED
-              DEBUG ("Drive for file \"" + Entry::name + "\" detected as fixed; using memory-mapping");
-              break;
-            case 4: // DRIVE_REMOTE
-              DEBUG ("Drive for file \"" + Entry::name + "\" detected as network - using delayed write-back");
-              delayed_writeback = true;
-              break;
-            case 5: // DRIVE_CDROM
-              DEBUG ("Drive for file \"" + Entry::name + "\" detected as CD-ROM - using delayed write-back");
-              delayed_writeback = true;
-              break;
-            case 6: // DRIVE_RAMDISK
-              DEBUG ("Drive for file \"" + Entry::name + "\" detected as RAM - using memory-mapping");
-              break;
-          }
-
-        } else {
-          DEBUG ("unable to query root drive path for file \"" + Entry::name + "\"; using delayed write-back");
-          delayed_writeback = true;
+      if (readwrite && File::use_delayed_writeback (Entry::name)) {
+        try {
+          first = new uint8_t [msize];
+          if (!first) throw 1;
         }
-#else
-        struct statfs fsbuf;
-        if (statfs (Entry::name.c_str(), &fsbuf)) {
-          DEBUG ("cannot get filesystem information on file \"" + Entry::name + "\": " + strerror (errno));
-          DEBUG ("  defaulting to delayed write-back");
-          delayed_writeback = true;
+        catch (...) {
+          throw Exception ("error allocating memory to hold mmap buffer contents");
         }
 
-        if (fsbuf.f_type == 0xff534d42 /* CIFS */|| fsbuf.f_type == 0x6969 /* NFS */ || 
-            fsbuf.f_type == 0x65735546 /* FUSE */ || fsbuf.f_type == 0x517b /* SMB */ || 
-            fsbuf.f_type == 0x47504653 /* GPFS */ || fsbuf.f_type == 0xbd00bd0 /* LUSTRE */
-
-#ifdef MRTRIX_MACOSX
-            || fsbuf.f_type == 0x0017 /* OSXFUSE */
-#endif 
-        ) {
-          DEBUG ("\"" + Entry::name + "\" appears to reside on a networked filesystem - using delayed write-back");
-          delayed_writeback = true;
+        if (preload) {
+          CONSOLE ("preloading contents of mapped file \"" + Entry::name + "\"...");
+          std::ifstream in (Entry::name.c_str(), std::ios::in | std::ios::binary);
+          if (!in)
+            throw Exception ("failed to open file \"" + Entry::name + "\": " + strerror (errno));
+          in.seekg (start, in.beg);
+          in.read ((char*) first, msize);
+          if (!in.good())
+            throw Exception ("error preloading contents of file \"" + Entry::name + "\": " + strerror(errno));
         }
-#endif
+        else
+          memset (first, 0, msize);
+        DEBUG ("file \"" + Entry::name + "\" held in RAM at " + str ( (void*) first) + ", size " + str (msize));
 
-        if (delayed_writeback) {
-          try {
-            first = new uint8_t [msize];
-            if (!first) throw 1;
-          }
-          catch (...) {
-            throw Exception ("error allocating memory to hold mmap buffer contents");
-          }
-
-          if (preload) {
-            CONSOLE ("preloading contents of mapped file \"" + Entry::name + "\"...");
-            std::ifstream in (Entry::name.c_str(), std::ios::in | std::ios::binary);
-            if (!in) 
-              throw Exception ("failed to open file \"" + Entry::name + "\": " + strerror (errno));
-            in.seekg (start, in.beg);
-            in.read ((char*) first, msize);
-            if (!in.good())
-              throw Exception ("error preloading contents of file \"" + Entry::name + "\": " + strerror(errno));
-          }
-          else 
-            memset (first, 0, msize);
-          DEBUG ("file \"" + Entry::name + "\" held in RAM at " + str ( (void*) first) + ", size " + str (msize));
-
-          return;
-        }
+        return;
       }
 
       // use regular memory-mapping:
@@ -227,11 +156,11 @@ namespace MR
     {
       assert (fd >= 0);
       struct stat sbuf;
-      if (fstat (fd, &sbuf)) 
+      if (fstat (fd, &sbuf))
         return false;
-      if (int64_t (msize) != sbuf.st_size) 
+      if (int64_t (msize) != sbuf.st_size)
         return true;
-      if (mtime != sbuf.st_mtime) 
+      if (mtime != sbuf.st_mtime)
         return true;
       return false;
     }

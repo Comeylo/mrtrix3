@@ -231,6 +231,11 @@ namespace MR
 
 
 
+
+    bool use_delayed_writeback (const std::string& path);
+
+
+
   }
 }
 
