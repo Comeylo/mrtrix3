@@ -188,7 +188,7 @@ namespace MR
 
 
       template <class FixelType>
-      FixelType&& parse_line (const std::string& line)
+      FixelType parse_line (const std::string& line)
       {
         auto entries = MR::split (line, ",");
         FixelType data;
@@ -210,12 +210,12 @@ namespace MR
             throw e;
           }
         }
-        return std::move (data);
+        return data;
       }
 
       template <class FixelType>
-      FixelType&& parse_line (const std::string& line,
-                              const IndexRemapper& index_remapper)
+      FixelType parse_line (const std::string& line,
+                            const IndexRemapper& index_remapper)
       {
         auto entries = MR::split (line, ",");
         FixelType data;
@@ -241,7 +241,7 @@ namespace MR
             throw e;
           }
         }
-        return std::move (data);
+        return data;
       }
 
 
