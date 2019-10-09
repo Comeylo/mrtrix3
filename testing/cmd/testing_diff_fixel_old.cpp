@@ -19,7 +19,7 @@
 
 
 #include "image.h"
-#include "fixel/legacy/image.h"
+#include "fixel/legacy/fixel_image.h"
 #include "fixel/legacy/fixel_metric.h"
 #include "image_helpers.h"
 #include "algo/threaded_loop.h"
