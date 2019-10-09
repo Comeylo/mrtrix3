@@ -1,0 +1,21 @@
+## Version: $Id$
+##
+######################################################################
+##
+### Commentary:
+##
+######################################################################
+##
+### Change Log:
+##
+######################################################################
+##
+### Code:
+
+set(mrtrix3_INCLUDE_DIRS
+  "@CMAKE_INSTALL_PREFIX@/include/"
+
+include("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/cmake/mrtrix3/mrtrix3Depends.cmake")
+
+######################################################################
+### mrtrix3Config.install.cmake.in ends here

@@ -1,0 +1,21 @@
+// Version: $Id$
+//
+//
+
+// Commentary:
+//
+//
+
+// Change Log:
+//
+//
+
+// Code:
+
+#pragma once
+
+#define MRTRIX3_VERSION   "@mrtrix3_VERSION@"
+#define MRTRIX_BUILD_TYPE  "@CMAKE_BUILD_TYPE@"
+
+//
+// mrtrix3Config.h.in ends here
