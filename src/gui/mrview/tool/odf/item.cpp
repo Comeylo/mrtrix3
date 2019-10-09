@@ -145,7 +145,7 @@ namespace MR
 
         void ODF_Item::DixelPlugin::set_from_file (const std::string& path)
         {
-          auto new_dirs = make_unique<MR::DWI::Directions::Set> (path);
+          auto new_dirs = MR::make_unique<MR::DWI::Directions::Set> (path);
           std::swap (dirs, new_dirs);
           dir_type = DixelPlugin::dir_t::FILE;
         }
@@ -172,8 +172,3 @@ namespace MR
     }
   }
 }
-
-
-
-
-
