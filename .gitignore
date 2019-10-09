@@ -19,6 +19,7 @@
 *.rste
 config
 build.*
+build/
 /configure.log
 /build.log
 /core/version.cpp
