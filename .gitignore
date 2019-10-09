@@ -39,7 +39,6 @@ build/
 .pydevproject
 *.config
 *.creator
-*.txt
 *.log
 *.creator.user
 *.files
