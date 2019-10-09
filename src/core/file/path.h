@@ -25,7 +25,6 @@
 #include <cerrno>
 #include <unistd.h>
 
-#include "types.h"
 #include "exception.h"
 
 #define HOME_ENV "HOME"
@@ -57,13 +56,13 @@ namespace MR
 
     inline std::string join (const std::string& first, const std::string& second)
     {
-      if (first.empty()) 
+      if (first.empty())
         return second;
       if (first[first.size()-1] != PATH_SEPARATOR[0]
 #ifdef MRTRIX_WINDOWS
           && first[first.size()-1] != PATH_SEPARATOR[1]
 #endif
-          ) 
+          )
         return first + PATH_SEPARATOR[0] + second;
       return first + second;
     }
@@ -153,7 +152,7 @@ namespace MR
           struct dirent* entry = readdir (p);
           if (entry) {
             ret = entry->d_name;
-            if (ret == "." || ret == "..") 
+            if (ret == "." || ret == "..")
               ret = read_name();
           }
           return ret;
@@ -174,4 +173,3 @@ namespace MR
 }
 
 #endif
-

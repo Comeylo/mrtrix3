@@ -18,6 +18,7 @@
 #include <locale>
 #include <clocale>
 
+#include <mrtrix3Config.h>
 
 #include "app.h"
 #include "debug.h"
@@ -1290,5 +1291,3 @@ namespace MR
 
   }
 }
-
-

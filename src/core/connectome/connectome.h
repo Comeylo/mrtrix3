@@ -121,11 +121,8 @@ namespace MR {
 
     void check (const Header&);
 
-
-
   }
 }
 
 
 #endif
-
