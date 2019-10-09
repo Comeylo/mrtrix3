@@ -26,7 +26,7 @@
 #include "image_io/sparse.h"
 #include "formats/list.h"
 #include "formats/mrtrix_utils.h"
-#include "fixel/legacy/keys.h"
+#include "fixel/legacy/fixel_keys.h"
 
 
 

@@ -20,8 +20,8 @@
 #include "math/math.h"
 
 #include "fixel/legacy/fixel_metric.h"
-#include "fixel/legacy/image.h"
-#include "fixel/legacy/keys.h"
+#include "fixel/legacy/fixel_image.h"
+#include "fixel/legacy/fixel_keys.h"
 
 #include "dwi/tractography/SIFT2/coeff_optimiser.h"
 #include "dwi/tractography/SIFT2/fixel_updater.h"
@@ -203,7 +203,7 @@ namespace MR {
         }
 
         unsigned int iter = 0;
-        
+
         auto display_func = [&](){ return printf("    %5u        %3.3f%%         %2.3f%%        %u", iter, 100.0 * cf_data / init_cf, 100.0 * cf_reg / init_cf, nonzero_streamlines); };
         CONSOLE ("  Iteration     CF (data)      CF (reg)     Streamlines");
         ProgressBar progress ("");
@@ -308,7 +308,7 @@ namespace MR {
           }
 
           progress.update (display_func);
-          
+
           // Leaving out testing the fixel exclusion mask criterion; doesn't converge, and results in CF increase
         } while (((new_cf - prev_cf < required_cf_change) || (iter < min_iters) /* || !fixels_to_exclude.empty() */ ) && (iter < max_iters));
 
@@ -442,6 +442,3 @@ namespace MR {
     }
   }
 }
-
-
-

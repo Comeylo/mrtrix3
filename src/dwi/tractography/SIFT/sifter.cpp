@@ -34,7 +34,7 @@
 
 #include "math/rng.h"
 
-#include "fixel/legacy/image.h"
+#include "fixel/legacy/fixel_image.h"
 
 
 
@@ -468,6 +468,3 @@ namespace MR
     }
   }
 }
-
-
-

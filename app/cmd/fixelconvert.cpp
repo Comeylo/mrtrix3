@@ -26,8 +26,8 @@
 #include "fixel/loop.h"
 
 #include "fixel/legacy/fixel_metric.h"
-#include "fixel/legacy/keys.h"
-#include "fixel/legacy/image.h"
+#include "fixel/legacy/fixel_keys.h"
+#include "fixel/legacy/fixel_image.h"
 
 
 using namespace MR;

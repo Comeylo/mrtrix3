@@ -21,10 +21,10 @@
 #include "image.h"
 #include "header.h"
 #include "image_io/sparse.h"
-#include "fixel/legacy/keys.h"
+#include "fixel/legacy/fixel_keys.h"
 
 #ifndef __image_h__
-#error File that #includes "fixel/legacy/image.h" must explicitly #include "image.h" beforehand
+#error File that #includes "fixel/legacy/fixel_image.h" must explicitly #include "image.h" beforehand
 #endif
 
 
@@ -150,6 +150,3 @@ namespace MR
 }
 
 #endif
-
-
-

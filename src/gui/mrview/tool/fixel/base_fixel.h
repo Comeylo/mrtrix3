@@ -23,7 +23,7 @@
 #include "transform.h"
 
 #include "algo/loop.h"
-#include "fixel/legacy/image.h"
+#include "fixel/legacy/fixel_image.h"
 #include "fixel/legacy/fixel_metric.h"
 #include "fixel/helpers.h"
 

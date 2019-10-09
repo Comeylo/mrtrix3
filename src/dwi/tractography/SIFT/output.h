@@ -30,8 +30,8 @@
 #include "math/SH.h"
 
 #include "fixel/legacy/fixel_metric.h"
-#include "fixel/legacy/image.h"
-#include "fixel/legacy/keys.h"
+#include "fixel/legacy/fixel_image.h"
+#include "fixel/legacy/fixel_keys.h"
 
 
 namespace MR
@@ -329,5 +329,3 @@ namespace MR
 
 
 #endif
-
-
