@@ -15,7 +15,6 @@
 *.mri
 *.img
 *.hdr
-*.qrc
 *.rste
 config
 build.*
