@@ -262,9 +262,9 @@ add_library(${PROJECT_NAME} SHARED
 ## Link rules
 ## ###################################################################
 
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME} Threads::Threads)
-target_link_libraries(${PROJECT_NAME} ${ZLIB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES})
 
 ## #################################################################
 ## Target properties

@@ -23,12 +23,15 @@ target_link_libraries(testing_diff_dir mrtrix3Core)
 
 add_executable(testing_diff_fixel cmd/testing_diff_fixel.cpp)
 target_link_libraries(testing_diff_fixel mrtrix3Core)
+target_link_libraries(testing_diff_fixel Threads::Threads)
 
 add_executable(testing_diff_fixel_old cmd/testing_diff_fixel_old.cpp)
 target_link_libraries(testing_diff_fixel_old mrtrix3Core)
+target_link_libraries(testing_diff_fixel_old Threads::Threads)
 
 add_executable(testing_diff_image cmd/testing_diff_image.cpp)
 target_link_libraries(testing_diff_image mrtrix3Core)
+target_link_libraries(testing_diff_image Threads::Threads)
 
 add_executable(testing_diff_matrix cmd/testing_diff_matrix.cpp)
 target_link_libraries(testing_diff_matrix mrtrix3Core)
@@ -38,6 +41,7 @@ target_link_libraries(testing_diff_mesh mrtrix3Core)
 
 add_executable(testing_diff_peaks cmd/testing_diff_peaks.cpp)
 target_link_libraries(testing_diff_peaks mrtrix3Core)
+target_link_libraries(testing_diff_peaks Threads::Threads)
 
 add_executable(testing_diff_tck cmd/testing_diff_tck.cpp)
 target_link_libraries(testing_diff_tck mrtrix3Core)
@@ -49,6 +53,7 @@ target_link_libraries(testing_diff_tsf mrtrix3DWI)
 
 add_executable(testing_gen_data cmd/testing_gen_data.cpp)
 target_link_libraries(testing_gen_data mrtrix3Core)
+target_link_libraries(testing_gen_data Threads::Threads)
 
 ## ###################################################################
 ## Link rules
