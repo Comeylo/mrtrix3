@@ -100,8 +100,8 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/exec_version.h.in ${CMAKE_BINARY_DIR}/exec_version.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/exec_version.cpp.in ${CMAKE_BINARY_DIR}/exec_version.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cpp.in ${CMAKE_BINARY_DIR}/version.cpp)
 
 ## #################################################################
 ## Options

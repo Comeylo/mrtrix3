@@ -19,7 +19,7 @@ project(mrtrix3Core)
 ## #################################################################
 
 set(${PROJECT_NAME}_HEADERS
-  ${CMAKE_BINARY_DIR}/exec_version.h
+  exec_version.h
   app.h
   apply.h
   axes.h
@@ -164,6 +164,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
   ${CMAKE_BINARY_DIR}/exec_version.cpp
+  ${CMAKE_BINARY_DIR}/version.cpp
   app.cpp
   axes.cpp
   bitset.cpp
@@ -177,7 +178,6 @@ set(${PROJECT_NAME}_SOURCES
   stats.cpp
   stride.cpp
   thread.cpp
-  version.cpp
   adapter/reslice.cpp
   algo/histogram.cpp
   connectome/connectome.cpp

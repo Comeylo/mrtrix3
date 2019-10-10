@@ -1,7 +1,6 @@
-
 namespace MR {
   namespace App {
-    const char* mrtrix_version = "3.0_RC3_latest-5-g81036fcc";
+    const char* mrtrix_version = "@GIT_BRANCH@-@GIT_COMMIT_HASH@";
     const char* build_date = __DATE__;
   }
 }
