@@ -19,7 +19,7 @@ project(mrtrix3Core)
 ## #################################################################
 
 set(${PROJECT_NAME}_HEADERS
-  ../exec_version.h
+  ${CMAKE_BINARY_DIR}/exec_version.h
   app.h
   apply.h
   axes.h
@@ -163,7 +163,7 @@ set(${PROJECT_NAME}_HEADERS
   surface/filter/vertex_transform.h)
 
 set(${PROJECT_NAME}_SOURCES
-  ../exec_version.cpp
+  ${CMAKE_BINARY_DIR}/exec_version.cpp
   app.cpp
   axes.cpp
   bitset.cpp
