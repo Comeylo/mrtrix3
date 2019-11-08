@@ -126,7 +126,7 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL)
 
-find_package(Eigen3  REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 find_package(ZLIB    REQUIRED)
 find_package(Threads REQUIRED)
 
