@@ -482,5 +482,13 @@ add_executable(warpinvert cmd/warpinvert.cpp)
 target_link_libraries(warpinvert mrtrix3Core)
 target_link_libraries(warpinvert Threads::Threads)
 
+## #################################################################
+## Install rules
+## #################################################################
+
+install(TARGETS mrview
+   BUNDLE DESTINATION bin
+   RUNTIME DESTINATION bin)
+
 ######################################################################
 ### CMakeLists.txt ends here
