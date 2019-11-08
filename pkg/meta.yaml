@@ -1,0 +1,54 @@
+package:
+  name: mrtrix3
+  version: {{ GIT_DESCRIBE_TAG }}
+
+source:
+  git_url:     ..
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - binutils_impl_linux-64<2.31.0 # [linux]
+    - {{ compiler('cxx') }}
+    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
+    - {{ cdt('mesa-libgl-devel') }}      # [linux]
+    - {{ cdt('mesa-libegl-devel') }}     # [linux]
+    - {{ cdt('mesa-dri-drivers') }}      # [linux]
+    - {{ cdt('libx11-devel') }}          # [linux]
+    - {{ cdt('libXt-devel') }}           # [linux]
+    - {{ cdt('libICE-devel') }}          # [linux]
+    - {{ cdt('libuuid-devel') }}         # [linux]
+    - {{ cdt('libSM-devel') }}           # [linux]
+    - {{ cdt('libxext-devel') }}         # [linux]
+    - {{ cdt('libxcb') }}                # [linux]
+    - {{ cdt('libxrender-devel') }}      # [linux]
+    - {{ cdt('libxau-devel') }}          # [linux]
+    - {{ cdt('libdrm-devel') }}          # [linux]
+    - {{ cdt('libxcomposite-devel') }}   # [linux]
+    - {{ cdt('libxcursor-devel') }}      # [linux]
+    - {{ cdt('libxi-devel') }}           # [linux]
+    - {{ cdt('libxrandr-devel') }}       # [linux]
+    - {{ cdt('pciutils-devel') }}        # [linux]
+    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
+    - {{ cdt('libxtst-devel') }}         # [linux]
+    - {{ cdt('libselinux-devel') }}      # [linux]
+    - {{ cdt('libxdamage') }}            # [linux]
+    - {{ cdt('libxdamage-devel') }}      # [linux]
+    - {{ cdt('libxfixes') }}             # [linux]
+    - {{ cdt('libxfixes-devel') }}       # [linux]
+    - {{ cdt('libxxf86vm') }}            # [linux]
+  host:
+    - qt >=5.9.0
+    - eigen
+
+  run:
+    - qt >=5.9.0
+    - eigen
+
+about:
+  entry: mrtrix3 [linux]
+#  home:
+#  license:
+#  summary:

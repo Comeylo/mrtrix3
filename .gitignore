@@ -17,8 +17,9 @@
 *.hdr
 *.rste
 config
-build.*
+/build.*
 build/
+install/
 /configure.log
 /build.log
 /core/version.cpp
